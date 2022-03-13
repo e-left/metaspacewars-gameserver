@@ -8,7 +8,8 @@ datasource db {
 }
 
 model player {
-  id       Int     @id @default(autoincrement())
-  pubkey   String  @db.VarChar(50)
-  metadata String? @db.Text
+  id        Int     @id @default(autoincrement())
+  pubkey    String  @db.VarChar(50)
+  highscore Int
+  metadata  String? @db.Text
 }
