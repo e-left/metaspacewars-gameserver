@@ -3,11 +3,17 @@ const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
+
+const {createPlayer, getPlayers, readPlayer, updatePlayer, deletePlayer, getLeaderboard, getRanking, getCount} = require('./data.js');
 
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server);
+
+// TODO: mitigate on redis possibly?
+const inMemoryPlayers = {};
 
 // new user connection
 io.on('connection', (socket) => {
@@ -16,24 +22,36 @@ io.on('connection', (socket) => {
   // TODO: game start listener
   socket.on("game start", (data) => {
     // data = {
-    //   "publicKey"
+    //   "pubkey"
     // }
 
     // creates a new game IN MEMORY to be tracked
     // through a global hashmap (object)
+    const gameID = uuidv4();
+    let player = {
+      pubkey: data.pubkey,
+      highscore: 0,
+      metadata: {},
+    };
+
+    inMemoryPlayers[gameID] = player;
 
     // returnedObject = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubkey",
+    //   "gameID"
     // }
+    return {
+      pubkey: player.pubkey,
+      gameID: gameID
+    };
   
   });
 
   // TODO: enemy kill listener
   socket.on("enemy kill", (data) => {
     // data = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubkey",
+    //   "gameID"
     // }
 
     // ensure here proper rate limiting and wave limits
@@ -41,8 +59,8 @@ io.on('connection', (socket) => {
     // add enemy kill
 
     // returnedObject = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubkey",
+    //   "gameID"
     // }
 
   });
@@ -50,8 +68,8 @@ io.on('connection', (socket) => {
   // TODO: wave clear listener
   socket.on("wave clear", (data) => {
     // data = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubKey",
+    //   "gameID"
     // }
 
     // ensure here wave limits of enemies
@@ -59,8 +77,8 @@ io.on('connection', (socket) => {
     // add wave clear with lives
 
     // returnedObject = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubKey",
+    //   "gameID"
     // }
 
   });
@@ -68,8 +86,8 @@ io.on('connection', (socket) => {
   // TODO: game end listener
   socket.on("game end", (data) => {
     // data = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubKey",
+    //   "gameID"
     // }
 
     // ensure valid game
@@ -77,8 +95,8 @@ io.on('connection', (socket) => {
     // write to database
 
     // returnedObject = {
-    //   "publicKey",
-    //   "gameId"
+    //   "pubKey",
+    //   "gameID"
     // }
 
   });
